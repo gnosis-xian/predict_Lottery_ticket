@@ -23,7 +23,7 @@ def main():
 @app.route('/predict_api', methods=['GET'])
 def get_predict_result():
     if locked():
-        return "Still has another work process... Please try again later."
+        return "正在计算中，请稍后再请求..."
     create_lock()
     try:
         data = spider(str(int(get_current_number()) - 2), get_current_number(), "predict")[BOLL_NAME]
