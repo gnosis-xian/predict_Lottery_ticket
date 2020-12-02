@@ -26,7 +26,7 @@ def get_predict_result():
         data_list = [int(x) for x in data[boll_name].tolist()]
         p_data = np.array(data_list).reshape([-1, 3, 1]).astype(np.float32)
         result.extend(model.predict_classes(p_data))
-    return json.dumps({b_name: int(res) + 1 for b_name, res in zip(BOLL_NAME, result)})
+    return json.dumps({b_name: int(res) + 1 for b_name, res in zip(BOLL_NAME, result)}, ensure_ascii=False)
 
 # load model
 def load_model():
