@@ -36,9 +36,10 @@ def get_predict_result():
             result.extend(model.predict_classes(p_data))
         result_json = json.dumps({b_name: int(res) + 1 for b_name, res in zip(BOLL_NAME, result)}, ensure_ascii=False)
         remove_lock()
+        return result_json
     except Exception as e:
         remove_lock()
-    return result_json
+        return "计算出错，稍后重新请求后再试..."
 
 # load model
 def load_model_list():
