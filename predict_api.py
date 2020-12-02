@@ -19,7 +19,7 @@ def main():
 @app.route('/predict_api', methods=['GET'])
 def get_predict_result():
     data = spider(str(int(get_current_number()) - 2), get_current_number(), "predict")[BOLL_NAME]
-    model_list = load_model()
+    model_list = load_model_list()
     result = []
     for i, model in enumerate(model_list):
         boll_name = BOLL_NAME[i]
@@ -29,7 +29,7 @@ def get_predict_result():
     return json.dumps({b_name: int(res) + 1 for b_name, res in zip(BOLL_NAME, result)}, ensure_ascii=False)
 
 # load model
-def load_model():
+def load_model_list():
     model_red_1 = load_model('model/lstm_model_红球号码_1.h5')
     model_red_2 = load_model('model/lstm_model_红球号码_2.h5')
     model_red_3 = load_model('model/lstm_model_红球号码_3.h5')
