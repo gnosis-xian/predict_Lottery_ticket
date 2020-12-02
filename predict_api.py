@@ -3,6 +3,8 @@
 Author: Niuzepeng
 """
 import json
+import os
+
 import numpy as np
 from config import *
 from flask import Flask
@@ -11,6 +13,8 @@ from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
 
+lock_file = "lock.lock"
+
 @app.route('/')
 def main():
     return "Welcome to use!"
@@ -18,15 +22,23 @@ def main():
 
 @app.route('/predict_api', methods=['GET'])
 def get_predict_result():
-    data = spider(str(int(get_current_number()) - 2), get_current_number(), "predict")[BOLL_NAME]
-    model_list = load_model_list()
-    result = []
-    for i, model in enumerate(model_list):
-        boll_name = BOLL_NAME[i]
-        data_list = [int(x) for x in data[boll_name].tolist()]
-        p_data = np.array(data_list).reshape([-1, 3, 1]).astype(np.float32)
-        result.extend(model.predict_classes(p_data))
-    return json.dumps({b_name: int(res) + 1 for b_name, res in zip(BOLL_NAME, result)}, ensure_ascii=False)
+    if locked():
+        return "Still has another work process... Please try again later."
+    create_lock()
+    try:
+        data = spider(str(int(get_current_number()) - 2), get_current_number(), "predict")[BOLL_NAME]
+        model_list = load_model_list()
+        result = []
+        for i, model in enumerate(model_list):
+            boll_name = BOLL_NAME[i]
+            data_list = [int(x) for x in data[boll_name].tolist()]
+            p_data = np.array(data_list).reshape([-1, 3, 1]).astype(np.float32)
+            result.extend(model.predict_classes(p_data))
+        result_json = json.dumps({b_name: int(res) + 1 for b_name, res in zip(BOLL_NAME, result)}, ensure_ascii=False)
+        remove_lock()
+    except Exception as e:
+        remove_lock()
+    return result_json
 
 # load model
 def load_model_list():
@@ -43,6 +55,17 @@ def load_model_list():
     print("[INFO] 模型加载成功！")
     return model_list
 
+def locked():
+    return os.path.exists(lock_file)
+
+def create_lock():
+    if os.path.exists(lock_file) is False:
+        with open(lock_file, "w") as file:
+            file.write("")
+
+def remove_lock():
+    if os.path.exists(lock_file):
+        os.remove(lock_file)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
